@@ -2,27 +2,27 @@
 
 /**
  * @ngdoc service
- * @name clientApp.companies
+ * @name clientApp.WorkSession
  * @description
- * # companies
+ * # WorkSession
  * Service in the clientApp.
  */
 angular.module('clientApp')
-  .service('TrackingProject', function ($q, $http, $timeout, Config, $rootScope) {
+  .service('WorkSession', function ($q, $http, $timeout, Config, $rootScope) {
 
     // A private cache key.
     var cache = {};
 
     // Update event broadcast name.
-    var broadcastUpdateEventName = 'ProductivityTrackingProjectChange';
+    var broadcastUpdateEventName = 'ProductivityWorkSessionChange';
 
     /**
      * Return the promise with the events list, from cache or the server.
      *
      * @returns {*}
      */
-    this.get = function(year, month) {
-      return $q.when(getCache(year, month) || getDataFromBackend(year, month));
+    this.get = function(employee, day, month, year) {
+      return $q.when(getCache(employee, day, month, year) || getDataFromBackend(employee, day, month, year));
     };
 
     /**
@@ -30,9 +30,9 @@ angular.module('clientApp')
      *
      * @returns {$q.promise}
      */
-    var getDataFromBackend = function(year, month) {
+    var getDataFromBackend = function(employee, day, month, year) {
       var deferred = $q.defer();
-      var url = Config.backend + '/api/tracking-project?year=' + year + '&month=' + month;
+      var url = Config.backend + '/api/work-sessions?filter[employee]=9&filter[start][value]=1457422770&filter[start][operator]=">"&filter[end][value]=1457454740&filter[end][operator]="<"';
       // Debug mode.
       if (Config.debug) {
         url += '&XDEBUG_SESSION_START=14241';
@@ -43,7 +43,7 @@ angular.module('clientApp')
         url: url
       }).success(function(response) {
         // Create header days.
-        setCache(response.data, year, month);
+        setCache(response.data, employee, day, month, year);
         deferred.resolve(response.data);
       });
 
@@ -59,7 +59,7 @@ angular.module('clientApp')
      * @param month
      *   The month to get the id of the cache.
      */
-    var getCache = function(year, month) {
+    var getCache = function(employee, day, month, year) {
       // Cache data.
       if (cache[year + '_' + month] != undefined) {
         return cache[year + '_' + month].data;
@@ -78,7 +78,7 @@ angular.module('clientApp')
      * @param month
      *   The month to set the id of the cache.
      */
-    var setCache = function(data, year, month) {
+    var setCache = function(data, employee, day, month, year) {
       // Cache data.
 
       cache[year + '_' + month] = {
@@ -93,7 +93,7 @@ angular.module('clientApp')
 
       // Broadcast a change event.
       $rootScope.$broadcast(broadcastUpdateEventName);
-      };
+    };
     $rootScope.$on('clearCache', function() {
       cache = {};
     });
